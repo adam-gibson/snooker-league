@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patteson Rooms Snooker League — Spring/Summer 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --yellow: #e8c84a;
+    --yellow-dim: rgba(232,200,74,0.12);
+    --yellow-glow: rgba(232,200,74,0.25);
+    --green: #4caf7d;
+    --green-dim: rgba(76,175,125,0.12);
+    --green-glow: rgba(76,175,125,0.25);
+    --text: #f0ede8;
+    --text-muted: #888;
+    --text-dim: #555;
+    --red: #e05c5c;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,200,74,0.06) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .site-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 60px 0 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+
+  .club-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--yellow);
+  }
+
+  .season-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-top: 16px;
+  }
+
+  /* ── NAV TABS ── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 48px;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text); background: var(--surface2); }
+
+  .tab-btn.active-yellow {
+    background: var(--yellow-dim);
+    color: var(--yellow);
+    border: 1px solid rgba(232,200,74,0.3);
+  }
+
+  .tab-btn.active-green {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(76,175,125,0.3);
+  }
+
+  .tab-btn.active-fixtures {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── DIVISION HEADER ── */
+  .division-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .division-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .division-title.yellow { color: var(--yellow); }
+  .division-title.green { color: var(--green); }
+
+  .division-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ── LEAGUE TABLE ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 16px;
+    text-align: left;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  thead th.num { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  /* Top 3 highlight */
+  tbody tr:nth-child(1) .pos-cell { color: var(--yellow); }
+  tbody tr:nth-child(2) .pos-cell { color: var(--text-muted); }
+  tbody tr:nth-child(3) .pos-cell { color: #a07850; }
+
+  td {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+
+  td.num {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .pos-cell {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 32px;
+  }
+
+  .player-name {
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .points-cell {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    text-align: right;
+  }
+
+  .points-cell.yellow-pts { color: var(--yellow); }
+  .points-cell.green-pts { color: var(--green); }
+
+  /* ── FIXTURES ── */
+  .fixtures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .week-card:hover { border-color: #3a3a3a; }
+
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .week-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .match-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .match-row:last-child { border-bottom: none; }
+
+  .match-player {
+    flex: 1;
+    font-size: 13px;
+  }
+
+  .match-player.home { text-align: right; }
+  .match-player.away { text-align: left; }
+
+  .match-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .match-score.played {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .score-win { color: var(--green) !important; }
+  .score-lose { color: var(--red) !important; }
+
+  .vs-dot {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* Division badge in fixture tab */
+  .div-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+
+  .div-section-label.yellow {
+    background: var(--yellow-dim);
+    color: var(--yellow);
+    border: 1px solid rgba(232,200,74,0.2);
+  }
+
+  .div-section-label.green {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(76,175,125,0.2);
+  }
+
+  .fixtures-section { margin-bottom: 48px; }
+
+  .fixtures-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  /* ── LAST UPDATED ── */
+  .last-updated {
+    text-align: center;
+    margin-top: 60px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .fixtures-grid { grid-template-columns: 1fr; }
+    .tabs { flex-direction: column; }
+    thead th.hide-mobile, td.hide-mobile { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="site-wrap">
+
+  <header>
+    <p class="club-name">Patteson Rooms Snooker Club</p>
+    <h1>Internal <em>League</em></h1>
+    <div class="season-badge">Spring / Summer 2026</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active-yellow" onclick="showTab('yellow')">🟡 Yellow Division</button>
+    <button class="tab-btn" onclick="showTab('green')">🟢 Green Division</button>
+    <button class="tab-btn" onclick="showTab('fixtures')">📅 Fixtures</button>
+  </div>
+
+  <!-- ═══ YELLOW DIVISION ═══ -->
+  <div id="tab-yellow" class="panel active">
+    <div class="division-header">
+      <span class="division-title yellow">Yellow Division</span>
+      <span class="division-sub">League Table</span>
+    </div>
+    <div class="table-wrap">
+      <table id="yellow-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th class="num">Played</th>
+            <th class="num hide-mobile">For</th>
+            <th class="num hide-mobile">Against</th>
+            <th class="num hide-mobile">Wins</th>
+            <th class="num">Points</th>
+          </tr>
+        </thead>
+        <tbody id="yellow-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ GREEN DIVISION ═══ -->
+  <div id="tab-green" class="panel">
+    <div class="division-header">
+      <span class="division-title green">Green Division</span>
+      <span class="division-sub">League Table</span>
+    </div>
+    <div class="table-wrap">
+      <table id="green-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th class="num">Played</th>
+            <th class="num hide-mobile">For</th>
+            <th class="num hide-mobile">Against</th>
+            <th class="num hide-mobile">Wins</th>
+            <th class="num">Points</th>
+          </tr>
+        </thead>
+        <tbody id="green-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ FIXTURES ═══ -->
+  <div id="tab-fixtures" class="panel">
+    <div class="fixtures-section">
+      <span class="div-section-label yellow">Yellow Division</span>
+      <div class="fixtures-grid" id="yellow-fixtures"></div>
+    </div>
+    <div class="fixtures-section">
+      <span class="div-section-label green">Green Division</span>
+      <div class="fixtures-grid" id="green-fixtures"></div>
+    </div>
+  </div>
+
+  <p class="last-updated" id="last-updated"></p>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  !! EDIT THIS DATA SECTION TO UPDATE SCORES !!
+//
+//  For each player: [played, framesFor, framesAgainst, wins, points]
+//  Set all to 0 at the start of the season.
+//
+//  For each match: { home, away, hScore, aScore }
+//  Leave hScore and aScore as null if not yet played.
+// ════════════════════════════════════════════════════════════
+
+const LAST_UPDATED = "4 April 2026";
+
+const yellowPlayers = [
+  { name: "Terry Lemmon",     played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Roberto Facchini", played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Graham Scott",     played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Kevin Knights",    played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Mike Hulme",       played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Paul Mulford",     played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Sean Curtis",      played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Tej Thakker",      played: 0, for: 0, against: 0, wins: 0, points: 0 },
+];
+
+const greenPlayers = [
+  { name: "Jeff Smith",     played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Stephen Curtis", played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Asa Vassar",     played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "John Butler",    played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Stuart Curtis",  played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Steve Cotten",   played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Mike Sampson",   played: 0, for: 0, against: 0, wins: 0, points: 0 },
+  { name: "Robert Curtis",  played: 0, for: 0, against: 0, wins: 0, points: 0 },
+];
+
+// Fixtures — hScore/aScore: null = not played, [n,n] = frames won each
+const yellowFixtures = [
+  { week: 1,  date: "13 Apr", matches: [
+    { home: "Terry Lemmon",     away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Tej Thakker",      hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Paul Mulford",     hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Sean Curtis",      hScore: null, aScore: null },
+  ]},
+  { week: 2,  date: "20 Apr", matches: [
+    { home: "Terry Lemmon",     away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Tej Thakker",      hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Paul Mulford",     hScore: null, aScore: null },
+  ]},
+  { week: 3,  date: "27 Apr", matches: [
+    { home: "Terry Lemmon",     away: "Paul Mulford",     hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Tej Thakker",      hScore: null, aScore: null },
+  ]},
+  { week: 4,  date: "4 May", matches: [
+    { home: "Terry Lemmon",     away: "Tej Thakker",      hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Paul Mulford",     hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Mike Hulme",       hScore: null, aScore: null },
+  ]},
+  { week: 5,  date: "11 May", matches: [
+    { home: "Terry Lemmon",     away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Kevin Knights",    hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Paul Mulford",     hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Sean Curtis",      hScore: null, aScore: null },
+  ]},
+  { week: 6,  date: "18 May", matches: [
+    { home: "Terry Lemmon",     away: "Kevin Knights",    hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Paul Mulford",     hScore: null, aScore: null },
+  ]},
+  { week: 7,  date: "25 May", matches: [
+    { home: "Terry Lemmon",     away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Kevin Knights",    hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Tej Thakker",      hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Sean Curtis",      hScore: null, aScore: null },
+  ]},
+  { week: 8,  date: "1 Jun", matches: [
+    { home: "Mike Hulme",       away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Kevin Knights",    hScore: null, aScore: null },
+  ]},
+  { week: 9,  date: "8 Jun", matches: [
+    { home: "Sean Curtis",      away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Kevin Knights",    hScore: null, aScore: null },
+  ]},
+  { week: 10, date: "15 Jun", matches: [
+    { home: "Paul Mulford",     away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Kevin Knights",    hScore: null, aScore: null },
+  ]},
+  { week: 11, date: "22 Jun", matches: [
+    { home: "Tej Thakker",      away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Mike Hulme",       away: "Kevin Knights",    hScore: null, aScore: null },
+  ]},
+  { week: 12, date: "29 Jun", matches: [
+    { home: "Graham Scott",     away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Tej Thakker",      hScore: null, aScore: null },
+  ]},
+  { week: 13, date: "6 Jul", matches: [
+    { home: "Kevin Knights",    away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Paul Mulford",     away: "Tej Thakker",      hScore: null, aScore: null },
+  ]},
+  { week: 14, date: "13 Jul", matches: [
+    { home: "Roberto Facchini", away: "Terry Lemmon",     hScore: null, aScore: null },
+    { home: "Kevin Knights",    away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Mike Hulme",       hScore: null, aScore: null },
+    { home: "Sean Curtis",      away: "Paul Mulford",     hScore: null, aScore: null },
+  ]},
+  { week: 15, date: "20 Jul", matches: [] }, // Catch-ups week
+];
+
+const greenFixtures = [
+  { week: 1,  date: "13 Apr", matches: [
+    { home: "Jeff Smith",     away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "Robert Curtis",  hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "John Butler",    away: "Mike Sampson",   hScore: null, aScore: null },
+  ]},
+  { week: 2,  date: "20 Apr", matches: [
+    { home: "Jeff Smith",     away: "Mike Sampson",   hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "Robert Curtis",  hScore: null, aScore: null },
+    { home: "John Butler",    away: "Steve Cotten",   hScore: null, aScore: null },
+  ]},
+  { week: 3,  date: "27 Apr", matches: [
+    { home: "Jeff Smith",     away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "Mike Sampson",   hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "John Butler",    away: "Robert Curtis",  hScore: null, aScore: null },
+  ]},
+  { week: 4,  date: "4 May", matches: [
+    { home: "Jeff Smith",     away: "Robert Curtis",  hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "Mike Sampson",   hScore: null, aScore: null },
+    { home: "John Butler",    away: "Stuart Curtis",  hScore: null, aScore: null },
+  ]},
+  { week: 5,  date: "11 May", matches: [
+    { home: "Jeff Smith",     away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "John Butler",    hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
+  ]},
+  { week: 6,  date: "18 May", matches: [
+    { home: "Jeff Smith",     away: "John Butler",    hScore: null, aScore: null },
+    { home: "Stephen Curtis", away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Steve Cotten",   hScore: null, aScore: null },
+  ]},
+  { week: 7,  date: "25 May", matches: [
+    { home: "Jeff Smith",     away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "John Butler",    hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Robert Curtis",  hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Mike Sampson",   hScore: null, aScore: null },
+  ]},
+  { week: 8,  date: "1 Jun", matches: [
+    { home: "Stuart Curtis",  away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "John Butler",    hScore: null, aScore: null },
+  ]},
+  { week: 9,  date: "8 Jun", matches: [
+    { home: "Mike Sampson",   away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "John Butler",    hScore: null, aScore: null },
+  ]},
+  { week: 10, date: "15 Jun", matches: [
+    { home: "Steve Cotten",   away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "John Butler",    hScore: null, aScore: null },
+  ]},
+  { week: 11, date: "22 Jun", matches: [
+    { home: "Robert Curtis",  away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "John Butler",    hScore: null, aScore: null },
+  ]},
+  { week: 12, date: "29 Jun", matches: [
+    { home: "Asa Vassar",     away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "John Butler",    away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "Robert Curtis",  hScore: null, aScore: null },
+  ]},
+  { week: 13, date: "6 Jul", matches: [
+    { home: "John Butler",    away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "Asa Vassar",     away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Robert Curtis",  hScore: null, aScore: null },
+  ]},
+  { week: 14, date: "13 Jul", matches: [
+    { home: "Stephen Curtis", away: "Jeff Smith",     hScore: null, aScore: null },
+    { home: "John Butler",    away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Mike Sampson",   away: "Steve Cotten",   hScore: null, aScore: null },
+  ]},
+  { week: 15, date: "20 Jul", matches: [] }, // Catch-ups week
+];
+
+// ════════════════════════════════════════════════════════════
+//  RENDERING — no need to edit below this line
+// ════════════════════════════════════════════════════════════
+
+function renderTable(players, tbodyId, ptClass) {
+  const sorted = [...players].sort((a, b) => b.points - a.points || b.wins - a.wins || (b.for - b.against) - (a.for - a.against));
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = sorted.map((p, i) => `
+    <tr>
+      <td class="pos-cell">${i + 1}</td>
+      <td class="player-name">${p.name}</td>
+      <td class="num">${p.played}</td>
+      <td class="num hide-mobile">${p.for}</td>
+      <td class="num hide-mobile">${p.against}</td>
+      <td class="num hide-mobile">${p.wins}</td>
+      <td class="points-cell ${ptClass}">${p.points}</td>
+    </tr>
+  `).join('');
+}
+
+function renderFixtures(fixtures, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = fixtures.map(week => {
+    if (week.matches.length === 0) {
+      return `
+        <div class="week-card">
+          <div class="week-header">
+            <span class="week-label">Week ${week.week}</span>
+            <span class="week-date">${week.date}</span>
+          </div>
+          <div class="match-row" style="justify-content:center;color:var(--text-dim);font-size:13px;font-style:italic;">
+            Catch-up week
+          </div>
+        </div>`;
+    }
+    const matchRows = week.matches.map(m => {
+      const played = m.hScore !== null && m.aScore !== null;
+      let scoreHtml = `<span class="match-score"><span class="vs-dot">vs</span></span>`;
+      if (played) {
+        const hWon = m.hScore > m.aScore;
+        const hClass = hWon ? 'score-win' : 'score-lose';
+        const aClass = hWon ? 'score-lose' : 'score-win';
+        scoreHtml = `<span class="match-score played"><span class="${hClass}">${m.hScore}</span> – <span class="${aClass}">${m.aScore}</span></span>`;
+      }
+      return `
+        <div class="match-row">
+          <span class="match-player home">${m.home}</span>
+          ${scoreHtml}
+          <span class="match-player away">${m.away}</span>
+        </div>`;
+    }).join('');
+    return `
+      <div class="week-card">
+        <div class="week-header">
+          <span class="week-label">Week ${week.week}</span>
+          <span class="week-date">${week.date}</span>
+        </div>
+        ${matchRows}
+      </div>`;
+  }).join('');
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.className = 'tab-btn';
+  });
+  document.getElementById('tab-' + tab).classList.add('active');
+  const btns = document.querySelectorAll('.tab-btn');
+  if (tab === 'yellow') btns[0].classList.add('active-yellow');
+  else if (tab === 'green') btns[1].classList.add('active-green');
+  else btns[2].classList.add('active-fixtures');
+}
+
+// Init
+renderTable(yellowPlayers, 'yellow-tbody', 'yellow-pts');
+renderTable(greenPlayers,  'green-tbody',  'green-pts');
+renderFixtures(yellowFixtures, 'yellow-fixtures');
+renderFixtures(greenFixtures,  'green-fixtures');
+document.getElementById('last-updated').textContent = `Last updated: ${LAST_UPDATED}`;
+</script>
+</body>
+</html>
