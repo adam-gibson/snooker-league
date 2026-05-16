@@ -529,24 +529,24 @@ const LAST_UPDATED = "4 April 2026";
 
 const yellowPlayers = [
   { name: "Terry Lemmon",     played: 3, for: 2, against: 7, wins: 1, points: 4 },
-  { name: "Roberto Facchini", played: 4, for: 7, against: 5, wins: 2, points: 11 },
+  { name: "Roberto Facchini", played: 5, for: 9, against: 6, wins: 3, points: 15 },
   { name: "Graham Scott",     played: 3, for: 7, against: 2, wins: 3, points: 13 },
-  { name: "Kevin Knights",    played: 4, for: 9, against: 3, wins: 4, points: 17 },
-  { name: "Mike Hulme",       played: 4, for: 1, against: 11, wins: 0, points: 1 },
-  { name: "Paul Mulford",     played: 4, for: 5, against: 7, wins: 1, points: 7 },
+  { name: "Kevin Knights",    played: 5, for: 10, against: 5, wins: 4, points: 18 },
+  { name: "Mike Hulme",       played: 5, for: 2, against: 13, wins: 0, points: 2 },
+  { name: "Paul Mulford",     played: 5, for: 7, against: 8, wins: 1, points: 11 },
   { name: "Sean Curtis",      played: 3, for: 7, against: 2, wins: 2, points: 11 },
   { name: "Tej Thakker",      played: 3, for: 4, against: 5, wins: 1, points: 6 },
 ];
 
 const greenPlayers = [
-  { name: "Jeff Smith",     played: 2, for: 1, against: 5, wins: 0, points: 1 },
-  { name: "Stephen Curtis", played: 4, for: 8, against: 4, wins: 3, points: 14 },
-  { name: "Asa Vassar",     played: 3, for: 3, against: 6, wins: 1, points: 5 },
-  { name: "John Butler",    played: 4, for: 9, against: 3, wins: 3, points: 15 },
+  { name: "Jeff Smith",     played: 4, for: 2, against: 10, wins: 0, points: 2 },
+  { name: "Stephen Curtis", played: 5, for: 10, against: 5, wins: 4, points: 18 },
+  { name: "Asa Vassar",     played: 4, for: 6, against: 6, wins: 2, points: 10 },
+  { name: "John Butler",    played: 5, for: 10, against: 5, wins: 3, points: 16 },
   { name: "Stuart Curtis",  played: 4, for: 5, against: 7, wins: 1, points: 7 },
-  { name: "Steve Cotten",   played: 3, for: 3, against: 6, wins: 1, points: 5 },
+  { name: "Steve Cotten",   played: 4, for: 5, against: 7, wins: 2, points: 9 },
   { name: "Mike Sampson",   played: 2, for: 1, against: 5, wins: 0, points: 1 },
-  { name: "Robert Curtis",  played: 4, for: 9, against: 3, wins: 3, points: 17 },
+  { name: "Robert Curtis",  played: 4, for: 9, against: 3, wins: 4, points: 17 },
 ];
 
 // Fixtures — hScore/aScore: null = not played, [n,n] = frames won each
@@ -577,9 +577,9 @@ const yellowFixtures = [
   ]},
   { week: 5,  date: "11 May", matches: [
     { home: "Terry Lemmon",     away: "Graham Scott",     hScore: null, aScore: null },
-    { home: "Roberto Facchini", away: "Kevin Knights",    hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Kevin Knights",    hScore: 2, aScore: 1 },
     { home: "Mike Hulme",       away: "Paul Mulford",     hScore: null, aScore: null },
-    { home: "Tej Thakker",      away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Tej Thakker",      away: "Sean Curtis",      hScore: 3, aScore: 5 },
   ]},
   { week: 6,  date: "18 May", matches: [
     { home: "Terry Lemmon",     away: "Kevin Knights",    hScore: null, aScore: null },
@@ -652,7 +652,7 @@ const greenFixtures = [
     { home: "John Butler",    away: "Steve Cotten",   hScore: 2, aScore: 1 },
   ]},
   { week: 3,  date: "27 Apr", matches: [
-    { home: "Jeff Smith",     away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Jeff Smith",     away: "Steve Cotten",   hScore: 1, aScore: 2 },
     { home: "Stephen Curtis", away: "Mike Sampson",   hScore: 2, aScore: 1 },
     { home: "Asa Vassar",     away: "Stuart Curtis",  hScore: 2, aScore: 1 },
     { home: "John Butler",    away: "Robert Curtis",  hScore: 1, aScore: 2 },
@@ -664,8 +664,8 @@ const greenFixtures = [
     { home: "John Butler",    away: "Stuart Curtis",  hScore: 3, aScore: 0 },
   ]},
   { week: 5,  date: "11 May", matches: [
-    { home: "Jeff Smith",     away: "Asa Vassar",     hScore: null, aScore: null },
-    { home: "Stephen Curtis", away: "John Butler",    hScore: null, aScore: null },
+    { home: "Jeff Smith",     away: "Asa Vassar",     hScore: 0, aScore: 3 },
+    { home: "Stephen Curtis", away: "John Butler",    hScore: 2, aScore: 4 },
     { home: "Stuart Curtis",  away: "Steve Cotten",   hScore: null, aScore: null },
     { home: "Robert Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
