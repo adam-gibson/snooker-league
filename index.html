@@ -528,25 +528,25 @@
 const LAST_UPDATED = "4 April 2026";
 
 const yellowPlayers = [
-  { name: "Terry Lemmon",     played: 3, for: 2, against: 7, wins: 1, points: 4 },
-  { name: "Roberto Facchini", played: 5, for: 9, against: 6, wins: 3, points: 15 },
-  { name: "Graham Scott",     played: 3, for: 7, against: 2, wins: 3, points: 13 },
+  { name: "Terry Lemmon",     played: 5, for: 3, against: 12, wins: 1, points: 5 },
+  { name: "Roberto Facchini", played: 7, for: 13, against: 8, wins: 4, points: 21 },
+  { name: "Graham Scott",     played: 6, for: 12, against: 6, wins: 5, points: 22 },
   { name: "Kevin Knights",    played: 5, for: 10, against: 5, wins: 4, points: 18 },
-  { name: "Mike Hulme",       played: 5, for: 2, against: 13, wins: 0, points: 2 },
+  { name: "Mike Hulme",       played: 6, for: 4, against: 14, wins: 1, points: 6 },
   { name: "Paul Mulford",     played: 5, for: 7, against: 8, wins: 1, points: 11 },
-  { name: "Sean Curtis",      played: 3, for: 7, against: 2, wins: 2, points: 11 },
+  { name: "Sean Curtis",      played: 5, for: 10, against: 5, wins: 3, points: 16 },
   { name: "Tej Thakker",      played: 3, for: 4, against: 5, wins: 1, points: 6 },
 ];
 
 const greenPlayers = [
-  { name: "Jeff Smith",     played: 4, for: 2, against: 10, wins: 0, points: 2 },
-  { name: "Stephen Curtis", played: 5, for: 10, against: 5, wins: 4, points: 18 },
-  { name: "Asa Vassar",     played: 4, for: 6, against: 6, wins: 2, points: 10 },
-  { name: "John Butler",    played: 5, for: 10, against: 5, wins: 3, points: 16 },
-  { name: "Stuart Curtis",  played: 4, for: 5, against: 7, wins: 1, points: 7 },
-  { name: "Steve Cotten",   played: 4, for: 5, against: 7, wins: 2, points: 9 },
+  { name: "Jeff Smith",     played: 6, for: 3, against: 15, wins: 0, points: 3 },
+  { name: "Stephen Curtis", played: 7, for: 13, against: 8, wins: 5, points: 23 },
+  { name: "Asa Vassar",     played: 6, for: 9, against: 6, wins: 3, points: 15 },
+  { name: "John Butler",    played: 6, for: 12, against: 6, wins: 4, points: 20 },
+  { name: "Stuart Curtis",  played: 5, for: 6, against: 9, wins: 1, points: 8 },
+  { name: "Steve Cotten",   played: 5, for: 6, against: 9, wins: 2, points: 10 },
   { name: "Mike Sampson",   played: 2, for: 1, against: 5, wins: 0, points: 1 },
-  { name: "Robert Curtis",  played: 4, for: 9, against: 3, wins: 4, points: 17 },
+  { name: "Robert Curtis",  played: 6, for: 13, against: 5, wins: 6, points: 25 },
 ];
 
 // Fixtures — hScore/aScore: null = not played, [n,n] = frames won each
@@ -572,23 +572,23 @@ const yellowFixtures = [
   { week: 4,  date: "4 May", matches: [
     { home: "Terry Lemmon",     away: "Tej Thakker",      hScore: null, aScore: null },
     { home: "Roberto Facchini", away: "Paul Mulford",     hScore: 3, aScore: 0 },
-    { home: "Graham Scott",     away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Graham Scott",     away: "Sean Curtis",      hScore: 1, aScore: 2 },
     { home: "Kevin Knights",    away: "Mike Hulme",       hScore: 3, aScore: 0 },
   ]},
   { week: 5,  date: "11 May", matches: [
-    { home: "Terry Lemmon",     away: "Graham Scott",     hScore: null, aScore: null },
+    { home: "Terry Lemmon",     away: "Graham Scott",     hScore: 1, aScore: 2 },
     { home: "Roberto Facchini", away: "Kevin Knights",    hScore: 2, aScore: 1 },
     { home: "Mike Hulme",       away: "Paul Mulford",     hScore: null, aScore: null },
     { home: "Tej Thakker",      away: "Sean Curtis",      hScore: 3, aScore: 5 },
   ]},
   { week: 6,  date: "18 May", matches: [
     { home: "Terry Lemmon",     away: "Kevin Knights",    hScore: null, aScore: null },
-    { home: "Roberto Facchini", away: "Graham Scott",     hScore: null, aScore: null },
-    { home: "Mike Hulme",       away: "Sean Curtis",      hScore: null, aScore: null },
+    { home: "Roberto Facchini", away: "Graham Scott",     hScore: 1, aScore: 2 },
+    { home: "Mike Hulme",       away: "Sean Curtis",      hScore: 2, aScore: 1 },
     { home: "Tej Thakker",      away: "Paul Mulford",     hScore: null, aScore: null },
   ]},
   { week: 7,  date: "25 May", matches: [
-    { home: "Terry Lemmon",     away: "Roberto Facchini", hScore: null, aScore: null },
+    { home: "Terry Lemmon",     away: "Roberto Facchini", hScore: 0, aScore: 3 },
     { home: "Graham Scott",     away: "Kevin Knights",    hScore: null, aScore: null },
     { home: "Mike Hulme",       away: "Tej Thakker",      hScore: null, aScore: null },
     { home: "Paul Mulford",     away: "Sean Curtis",      hScore: null, aScore: null },
@@ -670,15 +670,15 @@ const greenFixtures = [
     { home: "Robert Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
   { week: 6,  date: "18 May", matches: [
-    { home: "Jeff Smith",     away: "John Butler",    hScore: null, aScore: null },
-    { home: "Stephen Curtis", away: "Asa Vassar",     hScore: null, aScore: null },
+    { home: "Jeff Smith",     away: "John Butler",    hScore: 1, aScore: 2 },
+    { home: "Stephen Curtis", away: "Asa Vassar",     hScore: 0, aScore: 3 },
     { home: "Stuart Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
-    { home: "Robert Curtis",  away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Steve Cotten",   hScore: 2, aScore: 1 },
   ]},
   { week: 7,  date: "25 May", matches: [
     { home: "Jeff Smith",     away: "Stephen Curtis", hScore: null, aScore: null },
     { home: "Asa Vassar",     away: "John Butler",    hScore: null, aScore: null },
-    { home: "Stuart Curtis",  away: "Robert Curtis",  hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Robert Curtis",  hScore: 1, aScore: 2 },
     { home: "Steve Cotten",   away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
   { week: 8,  date: "1 Jun", matches: [
