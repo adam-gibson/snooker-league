@@ -539,14 +539,14 @@ const yellowPlayers = [
 ];
 
 const greenPlayers = [
-  { name: "Jeff Smith",     played: 7, for: 3, against: 15, wins: 0, points: 3 },
-  { name: "Stephen Curtis", played: 9, for: 16, against: 8, wins: 5, points: 28 },
-  { name: "Asa Vassar",     played: 6, for: 9, against: 6, wins: 3, points: 15 },
-  { name: "John Butler",    played: 6, for: 12, against: 6, wins: 4, points: 20 },
-  { name: "Stuart Curtis",  played: 5, for: 6, against: 9, wins: 1, points: 8 },
-  { name: "Steve Cotten",   played: 5, for: 6, against: 9, wins: 2, points: 10 },
-  { name: "Mike Sampson",   played: 2, for: 1, against: 5, wins: 0, points: 1 },
-  { name: "Robert Curtis",  played: 7, for: 16, against: 5, wins: 6, points: 30 },
+  { name: "Jeff Smith",     played: 6, for: 3, against: 15, wins: 0, points: 3 },
+  { name: "Stephen Curtis", played: 7, for: 11, against: 10, wins: 4, points: 19 },
+  { name: "Asa Vassar",     played: 6, for: 12, against: 6, wins: 4, points: 20 },
+  { name: "John Butler",    played: 6, for: 9, against: 9, wins: 3, points: 15 },
+  { name: "Stuart Curtis",  played: 7, for: 9, against: 12, wins: 2, points: 13 },
+  { name: "Steve Cotten",   played: 8, for: 12, against: 12, wins: 3, points: 20 },
+  { name: "Mike Sampson",   played: null, for: null, against: null, wins: null, points: null },
+  { name: "Robert Curtis",  played: 8, for: 16, against: 8, wins: 7, points: 30 },
 ];
 
 // Fixtures — hScore/aScore: null = not played, [n,n] = frames won each
@@ -643,7 +643,7 @@ const greenFixtures = [
     { home: "Jeff Smith",     away: "Stuart Curtis",  hScore: 0, aScore: 3 },
     { home: "Stephen Curtis", away: "Robert Curtis",  hScore: 1, aScore: 2 },
     { home: "Asa Vassar",     away: "Steve Cotten",   hScore: 1, aScore: 2 },
-    { home: "John Butler",    away: "Mike Sampson",   hScore: 3, aScore: 0 },
+    { home: "John Butler",    away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
   { week: 2,  date: "20 Apr", matches: [
     { home: "Jeff Smith",     away: "Mike Sampson",   hScore: null, aScore: null },
@@ -653,7 +653,7 @@ const greenFixtures = [
   ]},
   { week: 3,  date: "27 Apr", matches: [
     { home: "Jeff Smith",     away: "Steve Cotten",   hScore: 1, aScore: 2 },
-    { home: "Stephen Curtis", away: "Mike Sampson",   hScore: 2, aScore: 1 },
+    { home: "Stephen Curtis", away: "Mike Sampson",   hScore: null, aScore: null },
     { home: "Asa Vassar",     away: "Stuart Curtis",  hScore: 2, aScore: 1 },
     { home: "John Butler",    away: "Robert Curtis",  hScore: 1, aScore: 2 },
   ]},
@@ -666,7 +666,7 @@ const greenFixtures = [
   { week: 5,  date: "11 May", matches: [
     { home: "Jeff Smith",     away: "Asa Vassar",     hScore: 0, aScore: 3 },
     { home: "Stephen Curtis", away: "John Butler",    hScore: 2, aScore: 1 },
-    { home: "Stuart Curtis",  away: "Steve Cotten",   hScore: null, aScore: null },
+    { home: "Stuart Curtis",  away: "Steve Cotten",   hScore: 2, aScore: 1 },
     { home: "Robert Curtis",  away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
   { week: 6,  date: "18 May", matches: [
@@ -676,13 +676,13 @@ const greenFixtures = [
     { home: "Robert Curtis",  away: "Steve Cotten",   hScore: 2, aScore: 1 },
   ]},
   { week: 7,  date: "25 May", matches: [
-    { home: "Jeff Smith",     away: "Stephen Curtis", hScore: null, aScore: null },
+    { home: "Jeff Smith",     away: "Stephen Curtis", hScore: 0, aScore: 3 },
     { home: "Asa Vassar",     away: "John Butler",    hScore: null, aScore: null },
     { home: "Stuart Curtis",  away: "Robert Curtis",  hScore: 1, aScore: 2 },
     { home: "Steve Cotten",   away: "Mike Sampson",   hScore: null, aScore: null },
   ]},
   { week: 8,  date: "1 Jun", matches: [
-    { home: "Stuart Curtis",  away: "Jeff Smith",     hScore: 3, aScore: 0 },
+    { home: "Stuart Curtis",  away: "Jeff Smith",     hScore: null, aScore: null },
     { home: "Robert Curtis",  away: "Stephen Curtis", hScore: 3, aScore: 0 },
     { home: "Steve Cotten",   away: "Asa Vassar",     hScore: null, aScore: null },
     { home: "Mike Sampson",   away: "John Butler",    hScore: null, aScore: null },
@@ -690,8 +690,8 @@ const greenFixtures = [
   { week: 9,  date: "8 Jun", matches: [
     { home: "Mike Sampson",   away: "Jeff Smith",     hScore: null, aScore: null },
     { home: "Stuart Curtis",  away: "Stephen Curtis", hScore: null, aScore: null },
-    { home: "Robert Curtis",  away: "Asa Vassar",     hScore: null, aScore: null },
-    { home: "Steve Cotten",   away: "John Butler",    hScore: null, aScore: null },
+    { home: "Robert Curtis",  away: "Asa Vassar",     hScore: 0, aScore: 3 },
+    { home: "Steve Cotten",   away: "John Butler",    hScore: 3, aScore: 0 },
   ]},
   { week: 10, date: "15 Jun", matches: [
     { home: "Steve Cotten",   away: "Jeff Smith",     hScore: null, aScore: null },
@@ -708,7 +708,7 @@ const greenFixtures = [
   { week: 12, date: "29 Jun", matches: [
     { home: "Asa Vassar",     away: "Jeff Smith",     hScore: null, aScore: null },
     { home: "John Butler",    away: "Stephen Curtis", hScore: null, aScore: null },
-    { home: "Steve Cotten",   away: "Stuart Curtis",  hScore: null, aScore: null },
+    { home: "Steve Cotten",   away: "Stuart Curtis",  hScore: 2, aScore: 1 },
     { home: "Mike Sampson",   away: "Robert Curtis",  hScore: null, aScore: null },
   ]},
   { week: 13, date: "6 Jul", matches: [
