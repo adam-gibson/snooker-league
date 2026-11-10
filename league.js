@@ -93,7 +93,10 @@ const notice = (title, body) => modal({ title, body, ok: 'Close', cancel: '' });
 
 const player = id => state.players.find(p => p.id === id);
 const nameOf = id => player(id)?.name || '?';
-const divOf = id => state.divisions.find(d => d.id === id);
+const FINAL = { id: 'final', name: 'Play-off final', colour: 'black', playerIds: [], withdrawn: [] };
+const divOf = id => (id === 'final' ? FINAL : state.divisions.find(d => d.id === id));
+const finalFx = () => state.fixtures.find(f => f.divisionId === 'final');
+const finalNames = f => f.homeId ? [nameOf(f.homeId), nameOf(f.awayId)] : state.divisions.slice(0, 2).map(d => d.name.replace(' Division', '') + ' winner');
 const weekOf = n => state.season.weeks.find(w => w.n === n);
 const isOver = () => state.season?.status !== 'active';
 const opponent = (f, id) => (f.homeId === id ? f.awayId : f.homeId);
@@ -178,7 +181,7 @@ function renderMine() {
   if (!mine.length) return;
   const todo = mine.filter(f => f.status !== 'confirmed' && f.status !== 'void').sort((a, b) => a.week - b.week);
   const done = mine.filter(f => f.status === 'confirmed').length;
-  const div = divOf(mine[0].divisionId);
+  const div = divOf((mine.find(f => f.divisionId !== 'final') || mine[0]).divisionId);
   const cw = currentWeek();
   const cards = todo.map(f => {
       const wk = weekOf(f.week), opp = player(opponent(f, me));
@@ -193,7 +196,7 @@ function renderMine() {
       if (opp?.phone) actions += ` <a class="btn whatsapp" target="_blank" rel="noopener" href="https://wa.me/${esc(opp.phone)}?text=${encodeURIComponent(`Hi ${opp.name.split(' ')[0]}, when shall we play our league match?`)}">WhatsApp</a>`;
       return `<article class="card d-${div.colour} ${f.status}" style="border-left-color:var(--div-bar)">
         <div class="vs">${f.status ? scoreText(f) : `${esc(nameOf(f.homeId))} <small>v</small> ${esc(nameOf(f.awayId))}`}</div>
-        <div class="muted">Week ${f.week}${wk ? ` · w/c ${fmtDay(wk.date)}` : ''}${late ? ' · <span class="warn">catch-up needed</span>' : ''}</div>
+        <div class="muted">${f.divisionId === 'final' ? '<b>Play-off final</b> · ' : ''}Week ${f.week}${wk ? ` · w/c ${fmtDay(wk.date)}` : ''}${late ? ' · <span class="warn">catch-up needed</span>' : ''}</div>
         ${f.status ? `<div>${statusLine(f)}</div>` : ''}
         <div class="actions">${actions}</div></article>`;
     });
@@ -235,6 +238,11 @@ function renderTabs() {
   const weekCards = weeks.map(w => {
     const now = cw && cw.date === w.date && !isOver() ? ' now' : '';
     if (w.type === 'break') return `<div class="week off${now}"><h4><span>No matches</span><span>w/c ${fmtDay(w.date)}</span></h4><p>${esc(w.label)}</p></div>`;
+    if (w.type === 'final') {
+      const f = finalFx();
+      const body = f && f.homeId ? fxRow(f) : `<div class="fx"><span class="h">${esc(finalNames(f || {})[0])}</span><span class="sc vs">v</span><span>${esc(finalNames(f || {})[1])}</span></div>`;
+      return `<div class="week final${now}"><h4><span>🏆 Play-off final</span><span>w/c ${fmtDay(w.date)}</span></h4>${body}</div>`;
+    }
     if (w.type === 'catchup' || w.n > lastWeek) return `<div class="week off${now}"><h4><span>Week ${w.n}</span><span>w/c ${fmtDay(w.date)}</span></h4><p>Catch-up week</p></div>`;
     const list = fixtures.filter(f => f.week === w.n);
     const playing = new Set(list.flatMap(f => [f.homeId, f.awayId]));
@@ -412,7 +420,7 @@ async function renderAdmin() {
 
     <div class="panel"><h3>Players</h3>
       <div class="table-wrap"><table><tr><th>Name</th><th>PIN</th><th>Mobile</th><th>Alert topic</th><th></th></tr>
-      ${a.players.map(p => `<tr><td>${esc(p.name)}</td><td><code>${esc(p.pin)}</code></td><td>${esc(p.phone)}</td><td><code>${esc(p.ntfy)}</code></td>
+      ${a.players.map(p => `<tr><td>${esc(p.name)}</td><td><code>${esc(p.pin)}</code>${p.onLadder ? ' <small class="muted">ladder</small>' : ''}</td><td>${esc(p.phone)}</td><td><code>${esc(p.ntfy)}</code></td>
         <td><div class="actions"><button class="sm secondary" data-a="edit" data-id="${p.id}">Edit</button>
         <button class="sm secondary" data-a="pin" data-id="${p.id}">New PIN</button>
         <button class="sm danger" data-a="remove" data-id="${p.id}">Remove</button></div></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Players are added when you set up a season, or here.</td></tr>'}
@@ -425,6 +433,7 @@ async function renderAdmin() {
       <label>Points per frame won<input name="pointsPerFrame" type="number" min="0" max="10" value="${esc(a.settings.pointsPerFrame)}"></label>
       <label>Points for a match win<input name="pointsPerWin" type="number" min="0" max="10" value="${esc(a.settings.pointsPerWin)}"></label>
       <label>Auto-confirm after (hours, 0 = never)<input name="autoConfirmHours" type="number" min="0" max="720" value="${esc(a.settings.autoConfirmHours)}"></label>
+      <label>Ladder Google Sheet ID (shares PINs)<input name="ladderSheetId" value="${esc(a.settings.ladderSheetId || '')}"></label>
       <label>League site address<input name="siteUrl" value="${esc(a.settings.siteUrl)}" placeholder="https://…/league.html"></label>
       <label>New admin PIN (optional)<input name="newAdminPin" type="password" inputmode="numeric" autocomplete="off"></label>
       <button class="primary">Save settings</button></form><p class="err" id="setErr"></p></div>
@@ -456,13 +465,14 @@ async function renderAdmin() {
 
 function renderFxAdmin() {
   const mode = $('#fxFilter').value;
-  const list = state.fixtures.filter(f => mode === 'all' ? true : mode === 'open' ? !f.status : f.status === 'pending' || f.status === 'disputed')
+  const list = state.fixtures.filter(f => mode === 'all' || f.divisionId === 'final' ? true : mode === 'open' ? !f.status : f.status === 'pending' || f.status === 'disputed')
     .sort((x, y) => x.week - y.week || divOf(x.divisionId).name.localeCompare(divOf(y.divisionId).name));
   $('#fxAdmin').innerHTML = list.length ? `<table><tr><th>Wk</th><th>Division</th><th>Home</th><th>Score</th><th>Away</th><th>Status</th><th></th></tr>
-    ${list.map(f => `<tr><td>${f.week}</td><td>${esc(divOf(f.divisionId).name.replace(' Division', ''))}</td><td>${esc(nameOf(f.homeId))}</td>
-      <td>${f.homeFrames !== null ? `${f.homeFrames}–${f.awayFrames}` : ''}</td><td>${esc(nameOf(f.awayId))}</td>
+    ${list.map(f => `<tr><td>${f.week}</td><td>${esc(divOf(f.divisionId).name.replace(' Division', ''))}</td><td>${esc(f.homeId ? nameOf(f.homeId) : finalNames(f)[0])}</td>
+      <td>${f.homeFrames !== null ? `${f.homeFrames}–${f.awayFrames}` : ''}</td><td>${esc(f.awayId ? nameOf(f.awayId) : finalNames(f)[1])}</td>
       <td>${f.status || 'not played'}</td>
-      <td><div class="actions"><button class="sm primary" data-a="setScore" data-id="${f.id}">Set score</button>
+      <td><div class="actions">${f.divisionId === 'final' ? `<button class="sm secondary" data-a="finalists" data-id="${f.id}">Choose finalists</button>` : ''}
+      ${f.homeId ? `<button class="sm primary" data-a="setScore" data-id="${f.id}">Set score</button>` : ''}
       ${f.status === 'pending' || f.status === 'disputed' ? `<button class="sm secondary" data-a="confirm" data-id="${f.id}">Confirm</button>` : ''}
       ${f.status && f.status !== 'void' ? `<button class="sm danger" data-a="clear" data-id="${f.id}">Clear</button>` : ''}</div></td></tr>`).join('')}</table>`
     : '<p class="muted">Nothing to show.</p>';
@@ -481,6 +491,7 @@ function newSeasonForm() {
       <div class="form-grid">
         <label>Number of divisions<select name="divCount">${COLOURS.map((c, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select></label>
         <label>Catch-up weeks at the end<input name="catchUp" type="number" min="0" max="6" value="1"></label>
+        <label><span><input name="final" type="checkbox" checked> Play-off final between the Yellow and Green winners</span></label>
       </div>
       <div id="sizes" class="form-grid"></div>
       <label>Weeks with no matches (optional): one per line, the Sunday date then a note<textarea name="breaks" rows="3" style="width:100%;font:inherit" placeholder="2026-12-20 Christmas\n2026-12-27 New Year"></textarea></label>
@@ -490,7 +501,7 @@ function newSeasonForm() {
       const p = plan(fd);
       if (p.error) throw new Error(p.error);
       const j = await adminCall({ action: 'adminCreateSeason', name: fd.get('name'), startDate: fd.get('startDate'),
-        catchUp: fd.get('catchUp'), breaks: fd.get('breaks'), divisions: p.divs });
+        catchUp: fd.get('catchUp'), final: !!fd.get('final'), breaks: fd.get('breaks'), divisions: p.divs });
       seasonId = j.seasonId;
       adminCache = null;
       return () => {
@@ -549,7 +560,7 @@ function plan(fd) {
   let k = 0;
   const divs = sizes.map(sz => names.slice(k, k += sz));
   const play = Math.max(...divs.map(d => (d.length % 2 ? d.length : d.length - 1) * 2));
-  const total2 = play + (Number(fd.get('catchUp')) || 0), weeks = [];
+  const total2 = play + (Number(fd.get('catchUp')) || 0) + (fd.get('final') && n > 1 ? 1 : 0), weeks = [];
   for (let t = dateOf(start).getTime(), c = 0; c < total2; t += 7 * DAY) {
     const date = new Date(t).toISOString().slice(0, 10);
     weeks.push({ date });
@@ -593,6 +604,19 @@ document.addEventListener('click', async e => {
         ok: 'Save and confirm',
         onOk: async fd => { await adminCall({ action: 'adminResult', fixtureId: id, homeFrames: fd.get('h'), awayFrames: fd.get('a') }); adminCache = null; return renderAdmin; }
       });
+    case 'finalists': {
+      const lead = state.divisions.slice(0, 2).map(d => standings(d)[0]?.id);
+      const opts = sel => state.players.filter(x => x.active).sort((x, y) => x.name.localeCompare(y.name))
+        .map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+      return modal({
+        title: 'Choose finalists',
+        body: `<p class="muted">Filled in with the current division leaders.</p>
+          <label>Home (left)<select name="h">${opts(f.homeId || lead[0])}</select></label>
+          <label>Away (right)<select name="a">${opts(f.awayId || lead[1])}</select></label>`,
+        ok: 'Save',
+        onOk: async fd => { await adminCall({ action: 'adminSetFinal', fixtureId: id, homeId: fd.get('h'), awayId: fd.get('a') }); adminCache = null; return renderAdmin; }
+      });
+    }
     case 'confirm': return run({ action: 'adminConfirm', fixtureId: id });
     case 'clear':
       return modal({ title: 'Clear result', body: `<p>Clear the score for ${esc(nameOf(f.homeId))} v ${esc(nameOf(f.awayId))}?</p>`,

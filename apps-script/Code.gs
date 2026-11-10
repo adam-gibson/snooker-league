@@ -10,6 +10,23 @@
 // Optional: put a PIN here before running setup(). Leave blank for a random 6-digit PIN.
 const ADMIN_PIN = '';
 
+// The ladder's Google Sheet ID (the long code in its address). Players on both use their ladder PIN
+// and alert topic for the league too, and changing a PIN on either site changes both.
+const LADDER_SHEET_ID = '';
+
+// Created by setup(). Names are in division order: the first 6 are Yellow, the next 6 Green.
+const INITIAL_SEASON = {
+  name: 'Winter 2026-27',
+  startDate: '2026-11-22',
+  divisions: [
+    ['Adam Gibson', 'Sean Curtis', 'Steve Curtis', 'Jon Walker', 'Roberto Facchini', 'Stuart Curtis'],
+    ['Robert Curtis', 'John Butler', 'Steve Cotten', 'Terry Lemmon', 'Kevin Knights', 'Jeff Smith']
+  ],
+  breaks: '2026-12-20 Christmas\n2026-12-27 New Year',
+  catchUp: 1,
+  final: true
+};
+
 const SHEETS = {
   Players: ['id', 'name', 'active', 'pin', 'phone', 'ntfy'],
   Seasons: ['id', 'name', 'startDate', 'status', 'weeks', 'createdAt', 'archivedAt'],
@@ -41,9 +58,17 @@ function setup() {
     { key: 'pointsPerWin', value: '2' },
     { key: 'autoConfirmHours', value: '0' },
     { key: 'siteUrl', value: '' },
+    { key: 'ladderSheetId', value: LADDER_SHEET_ID },
     { key: 'adminPin', value: ADMIN_PIN || randomPin(6) }
   ]);
   writeTable('Log', [{ time: iso(Date.now()), event: 'League set up' }]);
+  if (INITIAL_SEASON) {
+    const db = load();
+    const out = createSeason(db, INITIAL_SEASON);
+    save(db);
+    Logger.log('Created ' + INITIAL_SEASON.name + '. League-only players and their PINs: ' +
+      (out.newPins.map(x => x.name + ' ' + x.pin).join(', ') || 'none'));
+  }
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('hourly').timeBased().everyHours(1).create();
   const sh = ss.getSheetByName('Sheet1');
@@ -132,8 +157,8 @@ const ACTIONS = {
   changePin(db, r) {
     const me = auth(db, r.playerId, r.pin);
     if (!/^\d{4}$/.test(String(r.newPin))) fail('The new PIN must be 4 digits.');
-    me.pin = String(r.newPin);
-    log(db, `${me.name} changed their PIN`);
+    setPin(db, me, String(r.newPin));
+    log(db, `${me.name} changed their PIN${link(db, me) ? ' (ladder PIN changed too)' : ''}`);
   },
 
   adminLogin(db, r) { admin(db, r); },
@@ -142,9 +167,11 @@ const ACTIONS = {
     admin(db, r);
     const s = db.settings;
     return {
-      players: db.players.filter(p => p.active).sort(byName).map(p => ({ id: p.id, name: p.name, pin: p.pin, phone: p.phone, ntfy: p.ntfy })),
+      players: db.players.filter(p => p.active).sort(byName).map(p => ({
+        id: p.id, name: p.name, pin: pinOf(db, p), phone: p.phone, ntfy: topicOf(db, p), onLadder: !!link(db, p)
+      })),
       settings: {
-        siteUrl: s.siteUrl, framesPerMatch: s.framesPerMatch, pointsPerFrame: s.pointsPerFrame,
+        siteUrl: s.siteUrl, ladderSheetId: s.ladderSheetId, framesPerMatch: s.framesPerMatch, pointsPerFrame: s.pointsPerFrame,
         pointsPerWin: s.pointsPerWin, autoConfirmHours: s.autoConfirmHours
       },
       log: readTable('Log').slice(-150).reverse()
@@ -168,7 +195,7 @@ const ACTIONS = {
     p.ntfy = String(r.ntfy || '').trim();
     if (r.pin) {
       if (!/^\d{4}$/.test(String(r.pin))) fail('A player PIN must be 4 digits.');
-      p.pin = String(r.pin);
+      if (String(r.pin) !== pinOf(db, p)) setPin(db, p, String(r.pin));
     }
     log(db, `Admin updated ${p.name}`);
   },
@@ -176,7 +203,7 @@ const ACTIONS = {
   adminResetPin(db, r) {
     admin(db, r);
     const p = findPlayer(db, r.id);
-    p.pin = randomPin(4);
+    setPin(db, p, randomPin(4));
     log(db, `Admin reset PIN for ${p.name}`);
     return { pin: p.pin };
   },
@@ -190,45 +217,18 @@ const ACTIONS = {
 
   adminCreateSeason(db, r) {
     admin(db, r);
-    const name = cleanName(r.name);
-    if (db.seasons.some(s => same(s.name, name))) fail('There is already a season called ' + name + '.');
-    const start = String(r.startDate || '');
-    if (!isSunday(start)) fail('The start date must be a Sunday.');
-    const breaks = parseBreaks(r.breaks);
-    const divs = (r.divisions || []).map(d => (d || []).map(cleanName));
-    if (!divs.length || divs.length > COLOURS.length) fail(`Please have between 1 and ${COLOURS.length} divisions.`);
-    divs.forEach((d, i) => { if (d.length < 2) fail(`${COLOURS[i]} Division needs at least 2 players.`); });
-    const all = [].concat.apply([], divs);
-    all.forEach((n, i) => { if (all.findIndex(x => same(x, n)) !== i) fail(n + ' is listed twice.'); });
+    return createSeason(db, r);
+  },
 
-    const season = { id: uid(), name, startDate: start, status: 'active', createdAt: iso(Date.now()), archivedAt: '' };
-    const newPins = [];
-    const rounds = divs.map(names => {
-      const ids = names.map(n => {
-        let p = db.players.find(x => x.active && same(x.name, n));
-        if (!p) {
-          p = addPlayer(db, n, '');
-          newPins.push({ name: p.name, pin: p.pin });
-        }
-        return p.id;
-      });
-      return { ids, rounds: doubleRoundRobin(ids) };
-    });
-    const playWeeks = Math.max.apply(null, rounds.map(x => x.rounds.length));
-    const weeks = buildWeeks(start, playWeeks, Math.max(0, parseInt(r.catchUp, 10) || 0), breaks);
-    season.weeks = JSON.stringify(weeks);
-    db.seasons.push(season);
-
-    rounds.forEach((d, i) => {
-      const div = { id: uid(), seasonId: season.id, order: i + 1, name: COLOURS[i] + ' Division', colour: COLOURS[i].toLowerCase(), playerIds: d.ids.join(','), withdrawn: '' };
-      db.divisions.push(div);
-      d.rounds.forEach((round, w) => round.forEach(([h, a]) => db.fixtures.push({
-        id: uid(), seasonId: season.id, divisionId: div.id, week: w + 1, homeId: h, awayId: a,
-        homeFrames: '', awayFrames: '', status: '', enteredBy: '', enteredAt: '', confirmedBy: '', confirmedAt: ''
-      })));
-    });
-    log(db, `Admin created ${name}: ${divs.map((d, i) => `${COLOURS[i]} (${d.length})`).join(', ')}, starting ${start}`);
-    return { seasonId: season.id, newPins };
+  adminSetFinal(db, r) {
+    admin(db, r);
+    const fx = findFixture(db, r.fixtureId);
+    if (fx.divisionId !== 'final') fail('This is not the final.');
+    if (!r.homeId || !r.awayId || r.homeId === r.awayId) fail('Please choose two different players.');
+    findPlayer(db, r.homeId); findPlayer(db, r.awayId);
+    Object.assign(fx, { homeId: r.homeId, awayId: r.awayId });
+    log(db, `Admin set the play-off final: ${nameOf(db, r.homeId)} v ${nameOf(db, r.awayId)}`);
+    return { seasonId: fx.seasonId };
   },
 
   adminArchiveSeason(db, r) {
@@ -293,6 +293,9 @@ const ACTIONS = {
     admin(db, r);
     const s = db.settings;
     s.siteUrl = String(r.siteUrl || '').trim();
+    s.ladderSheetId = String(r.ladderSheetId || '').trim().replace(/^.*\/d\/([^/]+).*$/, '$1');
+    db.ladder = null;
+    if (s.ladderSheetId && !ladder(db).length) fail('Could not read the ladder sheet. Check the ID.');
     [['framesPerMatch', 1, 21], ['pointsPerFrame', 0, 10], ['pointsPerWin', 0, 10], ['autoConfirmHours', 0, 720]].forEach(([k, lo, hi]) => {
       const n = parseInt(r[k], 10);
       if (isNaN(n) || n < lo || n > hi) fail(`${k} must be between ${lo} and ${hi}.`);
@@ -307,6 +310,54 @@ const ACTIONS = {
 };
 
 /* ---------- League rules ---------- */
+
+function createSeason(db, r) {
+  const name = cleanName(r.name);
+  if (db.seasons.some(s => same(s.name, name))) fail('There is already a season called ' + name + '.');
+  const start = String(r.startDate || '');
+  if (!isSunday(start)) fail('The start date must be a Sunday.');
+  const breaks = parseBreaks(r.breaks);
+  const divs = (r.divisions || []).map(d => (d || []).map(cleanName));
+  if (!divs.length || divs.length > COLOURS.length) fail(`Please have between 1 and ${COLOURS.length} divisions.`);
+  divs.forEach((d, i) => { if (d.length < 2) fail(`${COLOURS[i]} Division needs at least 2 players.`); });
+  const all = [].concat.apply([], divs);
+  all.forEach((n, i) => { if (all.findIndex(x => same(x, n)) !== i) fail(n + ' is listed twice.'); });
+
+  const season = { id: uid(), name, startDate: start, status: 'active', createdAt: iso(Date.now()), archivedAt: '' };
+  const newPins = [];
+  const rounds = divs.map(names => {
+    const ids = names.map(n => {
+      let p = db.players.find(x => x.active && same(x.name, n));
+      if (!p) {
+        p = addPlayer(db, n, '');
+        if (!link(db, p)) newPins.push({ name: p.name, pin: p.pin });
+      }
+      return p.id;
+    });
+    return { ids, rounds: doubleRoundRobin(ids) };
+  });
+  const playWeeks = Math.max.apply(null, rounds.map(x => x.rounds.length));
+  const final = !!r.final && divs.length > 1;
+  const weeks = buildWeeks(start, playWeeks, Math.max(0, parseInt(r.catchUp, 10) || 0), breaks, final);
+  season.weeks = JSON.stringify(weeks);
+  db.seasons.push(season);
+
+  rounds.forEach((d, i) => {
+    const div = { id: uid(), seasonId: season.id, order: i + 1, name: COLOURS[i] + ' Division', colour: COLOURS[i].toLowerCase(), playerIds: d.ids.join(','), withdrawn: '' };
+    db.divisions.push(div);
+    d.rounds.forEach((round, w) => round.forEach(([h, a]) => db.fixtures.push({
+      id: uid(), seasonId: season.id, divisionId: div.id, week: w + 1, homeId: h, awayId: a,
+      homeFrames: '', awayFrames: '', status: '', enteredBy: '', enteredAt: '', confirmedBy: '', confirmedAt: ''
+    })));
+  });
+  if (final) db.fixtures.push({
+    id: uid(), seasonId: season.id, divisionId: 'final', week: weeks[weeks.length - 1].n, homeId: '', awayId: '',
+    homeFrames: '', awayFrames: '', status: '', enteredBy: '', enteredAt: '', confirmedBy: '', confirmedAt: ''
+  });
+  log(db, `Created ${name}: ${divs.map((d, i) => `${COLOURS[i]} (${d.length})`).join(', ')}, starting ${start}`);
+  return { seasonId: season.id, newPins };
+}
+
 
 // Circle method. Each player meets every other once in the first half and once more,
 // with home and away swapped, in the second half. An odd number of players gives each a bye.
@@ -328,16 +379,16 @@ function doubleRoundRobin(ids) {
 }
 
 // Week list: playing weeks, then catch-up weeks; break weeks are slotted in by date.
-function buildWeeks(start, playWeeks, catchUp, breaks) {
-  const weeks = [];
+function buildWeeks(start, playWeeks, catchUp, breaks, final) {
+  const weeks = [], total = playWeeks + catchUp + (final ? 1 : 0);
   let t = Date.parse(start + 'T12:00:00Z'), n = 0;
-  while (n < playWeeks + catchUp) {
+  while (n < total) {
     const date = new Date(t).toISOString().slice(0, 10);
     const br = breaks.find(b => b.date === date);
     if (br) weeks.push({ date, type: 'break', label: br.label || 'No matches' });
     else {
       n++;
-      weeks.push({ date, n, type: n <= playWeeks ? 'play' : 'catchup' });
+      weeks.push({ date, n, type: n <= playWeeks ? 'play' : final && n === total ? 'final' : 'catchup' });
     }
     t += 7 * DAY;
   }
@@ -374,6 +425,39 @@ function processDue(db) {
   const due = db.fixtures.filter(f => f.status === 'pending' && Date.parse(f.enteredAt) + hours * HOUR <= Date.now());
   due.forEach(f => confirmFixture(db, f, 'auto', `Auto (after ${hours} hours)`));
   return due.length > 0;
+}
+
+/* ---------- Ladder link ---------- */
+
+// Active players on the ladder sheet, read once per request.
+function ladder(db) {
+  if (db.ladder) return db.ladder;
+  db.ladder = [];
+  if (!db.settings.ladderSheetId) return db.ladder;
+  try {
+    const sh = SpreadsheetApp.openById(db.settings.ladderSheetId).getSheetByName('Players');
+    const v = sh.getDataRange().getValues(), head = v[0].map(String), c = k => head.indexOf(k);
+    db.ladderSheet = sh;
+    db.ladderPinCol = c('pin') + 1;
+    db.ladder = v.slice(1).map((r, i) => ({
+      row: i + 2, name: String(r[c('name')]).trim(), pin: String(r[c('pin')]), ntfy: String(r[c('ntfy')]),
+      active: String(r[c('active')]).toUpperCase() === 'TRUE'
+    })).filter(x => x.active && x.name);
+  } catch (e) { db.ladder = []; }
+  return db.ladder;
+}
+
+function link(db, p) { return ladder(db).find(x => same(x.name, p.name)); }
+function pinOf(db, p) { const l = link(db, p); return l ? l.pin : String(p.pin); }
+function topicOf(db, p) { const l = link(db, p); return (l && l.ntfy) || p.ntfy; }
+
+function setPin(db, p, pin) {
+  p.pin = pin;
+  const l = link(db, p);
+  if (l) {
+    db.ladderSheet.getRange(l.row, db.ladderPinCol).setNumberFormat('@').setValue(pin);
+    l.pin = pin;
+  }
 }
 
 /* ---------- Helpers ---------- */
@@ -431,18 +515,18 @@ function checkPin(key, correct) {
 
 function auth(db, id, pin) {
   const p = findPlayer(db, id);
-  checkPin(id, String(pin) === String(p.pin));
+  checkPin(id, String(pin) === pinOf(db, p));
   return p;
 }
 
 function admin(db, r) { checkPin('admin', String(r.adminPin) === String(db.settings.adminPin)); }
 
 function notify(db, p, title, message) {
-  if (!p || !p.ntfy) return;
+  if (!p || !topicOf(db, p)) return;
   try {
     const headers = { Title: title, Tags: '8ball' };
     if (db.settings.siteUrl) headers.Click = db.settings.siteUrl;
-    UrlFetchApp.fetch('https://ntfy.sh/' + encodeURIComponent(p.ntfy), { method: 'post', payload: message, headers, muteHttpExceptions: true });
+    UrlFetchApp.fetch('https://ntfy.sh/' + encodeURIComponent(topicOf(db, p)), { method: 'post', payload: message, headers, muteHttpExceptions: true });
   } catch (e) { /* alerts are best effort */ }
 }
 

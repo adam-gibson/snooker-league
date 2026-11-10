@@ -218,3 +218,5 @@ main.wide { max-width: 1000px; }
 .choice.soon { opacity: .7; border-top-color: var(--line); }
 
 @media (max-width: 600px) { .standings .wide-only { display: none; } }
+.week.final { border: 2px solid #b58900; }
+.week.final h4 { background: #fff6cc; }
