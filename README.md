@@ -11,7 +11,7 @@ The club website: a home page (`index.html`) linking to the **League** (`league.
 1. Go to <https://sheets.new> and name the sheet **Snooker League**.
 2. **Extensions > Apps Script**: delete what is there, paste in all of `apps-script/Code.gs` and save.
 3. Optional: type your own admin PIN between the quotes in `const ADMIN_PIN = '';`.
-4. Paste the ladder sheet's ID (the long code in its web address, between `/d/` and `/edit`) between the quotes in `const LADDER_SHEET_ID = '';`. Players who are on both then use their ladder PIN, and changing it on either site changes both.
+4. Open the **Snooker Ladder spreadsheet** (not its Apps Script page). Its address looks like `docs.google.com/spreadsheets/d/LONG-CODE/edit`. Copy the long code and paste it between the quotes in `const LADDER_SHEET_ID = '';`. Players who are on both then use their ladder PIN, and changing it on either site changes both.
 5. Choose **setup** from the function drop-down and click **Run**. Allow the permissions. This also creates the **Winter 2026-27** season (see `INITIAL_SEASON` at the top of the script). The PINs of league-only players are shown in the run log and in Admin > Players.
 6. **Deploy > New deployment**, cog, **Web app**: Execute as **Me**, Who has access **Anyone**. Deploy and copy the URL ending `/exec`.
 7. Paste that URL into `config.js` (`LEAGUE_API_URL`).
