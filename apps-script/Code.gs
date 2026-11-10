@@ -8,7 +8,7 @@
  */
 
 // Optional: put a PIN here before running setup(). Leave blank for a random 6-digit PIN.
-const ADMIN_PIN = '';
+const ADMIN_PIN = '832076';
 
 // The ladder's Google Sheet ID (the long code in its address). Players on both use their ladder PIN
 // and alert topic for the league too, and changing a PIN on either site changes both.
