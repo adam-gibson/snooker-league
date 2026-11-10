@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snooker League</title>
+  <meta name="description" content="Patteson Social Club Snooker League">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23f2c200'/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Patteson Social Club Snooker League</h1>
+    <p id="seasonName"></p>
+    <nav><a href="index.html">Home</a> · <a id="ladderLink" href="#">Ladder</a></nav>
+  </header>
+
+  <main id="playerView" class="wide">
+    <div class="season-bar">
+      <label>Season <select id="seasonPick"></select></label>
+      <span id="seasonDates" class="muted"></span>
+    </div>
+    <div id="banner"></div>
+
+    <section class="me-bar" id="meBar">
+      <label>I am
+        <select id="me"><option value="">Choose your name…</option></select>
+      </label>
+      <p id="meHint" class="muted"></p>
+    </section>
+
+    <section id="mineSection" hidden>
+      <h2>My matches</h2>
+      <div id="mine" class="mine-list"></div>
+    </section>
+
+    <section id="pendingSection" hidden>
+      <h2>Results awaiting confirmation</h2>
+      <div id="pending"></div>
+    </section>
+
+    <section>
+      <div id="tabs" class="tabs"></div>
+      <div id="division"><p class="muted">Loading…</p></div>
+    </section>
+
+    <details class="rules">
+      <summary>League rules and how to enter scores</summary>
+      <ul id="rulesList"></ul>
+      <h3>Contact</h3>
+      <p>Adam: <b>07899 898706</b> (mobile/WhatsApp)</p>
+      <h3>Phone alerts (free)</h3>
+      <p>Install the <b>ntfy</b> app (Android or iPhone), tap <b>+</b> and subscribe to the topic Adam sends you. You will get an alert when a result needs confirming.</p>
+    </details>
+
+    <footer>
+      <button id="changePin" class="secondary">Change my PIN</button>
+      <a href="#admin">Admin</a>
+    </footer>
+  </main>
+
+  <main id="adminView" class="wide" hidden></main>
+
+  <dialog id="modal"></dialog>
+
+  <script src="config.js"></script>
+  <script src="league.js"></script>
+</body>
+</html>
